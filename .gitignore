@@ -61,6 +61,10 @@ compile_commands.json
 # vcpkg
 vcpkg_installed/
 
+never.h
+secrets.h
+*.bin
+
 # debug information files
 *.dwo
 
