@@ -127,6 +127,7 @@ void handleRoot(AsyncWebServerRequest *request) {
      request->send(200, "text/html", html);
 }
 
+// Handles WebSocket events — logs when a client connects or disconnects
 void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient * client,
                AwsEventType type, void *arg, uint8_t *data, size_t len) {
 
@@ -137,6 +138,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient * client,
                 } 
              }
 
+// Connects to the MQTT broker — retries every 2 seconds until successful
 void connectMQTT() {
     while (!mqttClient.connected()) {
         Serial.println("Connecting to MQTT...");
@@ -149,6 +151,7 @@ void connectMQTT() {
     }
 }
 
+// Clears the OLED display and prepares it for new content based on current mode
 void showSensorData(float temp, float hum) {
     display.clearDisplay();
     display.setCursor(0, 0);
@@ -219,8 +222,7 @@ void setup() {
 
     pinMode(BUTTON_PIN, INPUT_PULLUP);
     pinMode(LED_BUTTON, OUTPUT);
-    
-
+  
     // 1. Eerst WiFi verbinden
     WiFi.begin(WiFi_SSID, WiFi_PASSWORD);
     while (WiFi.status() != WL_CONNECTED) {
@@ -257,7 +259,7 @@ void setup() {
 }
 
 void loop() {
-    
+    // Reconnect to MQTT broker if connection is lost, then process incoming messages
     if (!mqttClient.connected()) {
     connectMQTT();
     }
