@@ -1,0 +1,100 @@
+# ESP32-Realtime-Sensor-Monitor
+
+> NOTE: THIS IS AN EXPANSION OF ESP32-Sensor-Dashboard
+
+It reads temperature and humidity using a BME280 sensor and streams live data to a web page using WebSockets — no page refresh needed. The data updates instantly in the browser the moment the ESP32 has a new reading. Everything runs on millis(), no delay() used anywhere.
+
+| ![Setup](images/setup.jpg) | ![OLED](images/oled.jpg)
+
+---
+
+## ✨ Features
+
+- 🌡️ Measures temperature and humidity using a BME280 sensor
+- 🖥️ Displays live data on an SSD1306 OLED screen (128x64)
+- 📶 Creates its own WiFi hotspot
+- 🌐 Local web server at `Your IP-address`
+- ⚡ Live data streaming via WebSockets — no page refresh
+- 📈 Statistics — min/max temperature and threshold count, updated live
+- ⚠️ Error handling for sensor failures or loose connections
+- 🔒 No sensitive data in main code
+- 🧠 Non-blocking timing with `millis()` → web server stays responsive
+- 🖱️ Interactive button:
+  - **Short press**: shows "Button pressed!" on the OLED
+  - **Long press (≥ 2 sec)**: cycles through three modes:
+    - 📊 Sensor Mode — live temperature and humidity
+    - ℹ️ Info Mode — device IP address and uptime
+    - 📈 Stats Mode — min/max temperature and threshold count
+  - **Auto-return (after 5 sec)**: returns to Sensor Mode automatically
+- 🌡️ Smart alert system: reacts to high temperature with LED, OLED, and web feedback
+
+---
+
+## ⚡ WebSockets vs Auto-refresh
+
+Previous projects used `setTimeout` to reload the page every 2 seconds. This project uses WebSockets — a permanent connection between the browser and the ESP32. The ESP32 pushes new data directly to the browser the moment it has a new reading. No reload, no flicker, no unnecessary requests.
+
+---
+
+> ⚠️ **Why no `°` symbol on the OLED?**
+> The `Adafruit_SSD1306` library has limited support for special characters like the degree symbol (`°`). To keep the code simple and reliable, the OLED displays only `"C"` instead of `"°C"`.
+>
+> ✅ The **web version** does show the correct `°C` symbol thanks to HTML encoding.
+
+This is a common limitation in embedded displays — not a bug!
+
+---
+
+## 🧰 Components Required
+
+- ESP32 Development Board (e.g., ESP32 DevKit)
+- BME280 temperature/humidity sensor (I²C)
+- SSD1306 OLED display (128x64, I²C)
+- Breadboard and jumper wires
+- Micro-USB cable
+- RED LED
+- 2x 220 Ohm Resistor
+- 1x pushbutton
+
+---
+
+## 🔌 Wiring (I²C Bus)
+
+| ESP32 Pin | Function | Connected To |
+|----------|----------|--------------|
+| 3.3V | Power | VCC of BME280 + OLED |
+| GND | Ground | GND of BME280 + OLED + Button (one side) |
+| GPIO21 | SDA | SDA of BME280 + OLED |
+| GPIO22 | SCL | SCL of BME280 + OLED |
+| GPIO4 | Input | Button (other side) |
+| GPIO2 | Output | LED + 220Ω resistor |
+
+Note: The button is connected between GPIO 4 and GND. The code enables the internal pull-up resistor, so no external resistor is required.
+
+> 💡 Ensure both devices use **different I²C addresses** (BME280: `0x76`, OLED: `0x3C`).
+
+---
+
+## ▶️ Usage
+
+1. Install required libraries via PlatformIO — add these to `platformio.ini`:
+
+```ini
+lib_deps =
+    adafruit/Adafruit BME280 Library@^2.2.3
+    adafruit/Adafruit SSD1306@^2.5.7
+    adafruit/Adafruit GFX Library@^1.11.6
+    mathieucarbou/ESPAsyncWebServer@^3.3.23
+    mathieucarbou/AsyncTCP@^3.3.2
+```
+
+2. Upload the code to your ESP32
+3. Connect to the WiFi hotspot created by the ESP32
+4. Open your browser and go to `Your IP-address`
+5. Watch the data update live — no refresh needed
+
+---
+
+## 🧠 How It Works
+
+The ESP32 reads temperature and humidity every 2 seconds. Instead of rebuilding and sending the entire HTML page on each update, it sends only the new values via a WebSocket connection. The browser receives the values instantly and updates only the relevant parts of the page.
