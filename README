@@ -2,7 +2,9 @@
 
 > NOTE: THIS IS AN EXPANSION OF ESP32-Realtime-Sensor-Monitor
 
-ESP32 project that reads temperature and humidity using a BME280 sensor and publishes live data to an MQTT broker. Any device in the world can subscribe to the data topics and receive live sensor readings. No delay() used anywhere, everything runs on millis().
+ESP32 project that reads temperature and humidity using a BME280 sensor and publishes live data to an MQTT broker. 
+Any device in the world can subscribe to the data topics and receive live sensor readings. 
+No delay used anywhere, everything runs on millis.
 
 ---
 
