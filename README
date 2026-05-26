@@ -1,24 +1,20 @@
-# ESP32-Realtime-Sensor-Monitor
+# ESP32-MQTT-Sensor-Node
 
-> NOTE: THIS IS AN EXPANSION OF ESP32-Sensor-Dashboard
+> NOTE: THIS IS AN EXPANSION OF ESP32-Realtime-Sensor-Monitor
 
-It reads temperature and humidity using a BME280 sensor and streams live data to a web page using WebSockets — no page refresh needed. The data updates instantly in the browser the moment the ESP32 has a new reading. Everything runs on millis(), no delay() used anywhere.
-
-| ![Setup](images/setup.jpg) | ![OLED](images/oled.jpg)
+ESP32 project that reads temperature and humidity using a BME280 sensor and publishes live data to an MQTT broker. Any device in the world can subscribe to the data topics and receive live sensor readings. No delay() used anywhere, everything runs on millis().
 
 ---
 
 ## ✨ Features
 
 - 🌡️ Measures temperature and humidity using a BME280 sensor
+- 📡 Publishes live data to MQTT broker (`broker.hivemq.com`)
+- 🌐 Accessible from anywhere in the world via MQTT
+- 📊 Publishes statistics — min/max temperature and threshold count
 - 🖥️ Displays live data on an SSD1306 OLED screen (128x64)
-- 📶 Creates its own WiFi hotspot
-- 🌐 Local web server at `Your IP-address`
 - ⚡ Live data streaming via WebSockets — no page refresh
-- 📈 Statistics — min/max temperature and threshold count, updated live
-- ⚠️ Error handling for sensor failures or loose connections
-- 🔒 No sensitive data in main code
-- 🧠 Non-blocking timing with `millis()` → web server stays responsive
+- 🧠 Non-blocking timing with `millis()` → stays responsive
 - 🖱️ Interactive button:
   - **Short press**: shows "Button pressed!" on the OLED
   - **Long press (≥ 2 sec)**: cycles through three modes:
@@ -30,18 +26,15 @@ It reads temperature and humidity using a BME280 sensor and streams live data to
 
 ---
 
-## ⚡ WebSockets vs Auto-refresh
+## 📡 MQTT Topics
 
-Previous projects used `setTimeout` to reload the page every 2 seconds. This project uses WebSockets — a permanent connection between the browser and the ESP32. The ESP32 pushes new data directly to the browser the moment it has a new reading. No reload, no flicker, no unnecessary requests.
-
----
-
-> ⚠️ **Why no `°` symbol on the OLED?**
-> The `Adafruit_SSD1306` library has limited support for special characters like the degree symbol (`°`). To keep the code simple and reliable, the OLED displays only `"C"` instead of `"°C"`.
->
-> ✅ The **web version** does show the correct `°C` symbol thanks to HTML encoding.
-
-This is a common limitation in embedded displays — not a bug!
+| Topic | Description |
+|-------|-------------|
+| `esp32/sensor/temperature` | Live temperature in °C |
+| `esp32/sensor/humidity` | Live humidity in % |
+| `esp32/sensor/minTemp` | Lowest recorded temperature |
+| `esp32/sensor/maxTemp` | Highest recorded temperature |
+| `esp32/sensor/threshold` | Number of times threshold exceeded |
 
 ---
 
@@ -86,15 +79,22 @@ lib_deps =
     adafruit/Adafruit GFX Library@^1.11.6
     mathieucarbou/ESPAsyncWebServer@^3.3.23
     mathieucarbou/AsyncTCP@^3.3.2
+    knolleary/PubSubClient
 ```
 
-2. Upload the code to your ESP32
-3. Connect to the WiFi hotspot created by the ESP32
-4. Open your browser and go to `Your IP-address`
-5. Watch the data update live — no refresh needed
+2. Create `secrets.h` and fill in your WiFi credentials:
+
+```cpp
+#define AP_SSID     "your-network-name"
+#define AP_PASSWORD "your-password"
+```
+
+3. Upload the code to your ESP32
+4. Open `https://www.hivemq.com/demos/websocket-client/` in your browser
+5. Connect to `broker.hivemq.com`
+6. Subscribe to `esp32/sensor/temperature` and other topics
+7. Watch live data arrive from your ESP32
 
 ---
 
 ## 🧠 How It Works
-
-The ESP32 reads temperature and humidity every 2 seconds. Instead of rebuilding and sending the entire HTML page on each update, it sends only the new values via a WebSocket connection. The browser receives the values instantly and updates only the relevant parts of the page.
